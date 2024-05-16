@@ -57,10 +57,10 @@ while True:
                                mask_color=colors(int(cls), True),
                                det_label=names[int(cls)])
 
-    # Resize stream to fit window
-    resized = cv2.resize(frame_cap, (scaled_width, scaled_height), interpolation=cv2.INTER_AREA)
     # Create display frame, start with background image
     frame = cv2.resize(bg, (win_w, win_h), interpolation=cv2.INTER_AREA)
+    # Resize stream to fit window
+    resized = cv2.resize(frame_cap, (scaled_width, scaled_height), interpolation=cv2.INTER_AREA)
     # Add scaled stream to background image
     frame[start_y:start_y + scaled_height, start_x:start_x + scaled_width] = resized
 
