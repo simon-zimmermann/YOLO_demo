@@ -9,10 +9,6 @@ class_names = []
 with open("yolov7_tiny.classes", "r") as f:
     class_names = [cname.strip() for cname in f.readlines()]
 
-vc = cv2.VideoCapture(0)
-vc.set(3, 416)
-vc.set(4, 416)
-
 net = cv2.dnn.readNet("yolov7-tiny.weights", "yolov7-tiny.cfg")
 
 model = cv2.dnn_DetectionModel(net)
@@ -25,9 +21,11 @@ bg = cv2.imread("yolov7_BG.png")
 cv2.namedWindow('ML_DEMO', cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty('ML_DEMO', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 (win_x, win_y, win_w, win_h) = cv2.getWindowImageRect('ML_DEMO')
+win_w = 1920  # For some reason auto-detection of window size does not work
+win_h = 1080
 print("Window size: ", win_w, win_h)
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Get capture device
+cap = cv2.VideoCapture(0)  # Get capture device
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)  # try to set some insane resolution
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 # get actual maximum resolution
@@ -38,7 +36,7 @@ print("Capture size: ", capture_w, capture_h)
 # Calculate scaling for captured stream
 # scale the webcam stream to a factor of the window height
 # Factor determined by trial and error
-scaled_height = int(0.755 * win_h)
+scaled_height = int(0.7545 * win_h)
 scaled_width = int((capture_w / capture_h) * scaled_height)
 print("Scaled size: ", scaled_width, scaled_height)
 
@@ -63,7 +61,7 @@ while True:
             color = COLORS[int(classid) % len(COLORS)]
             if class_names[classid] == "refrigerator":
                 continue
-            label = "{} : {:.0%}".format(class_names[classid], score)
+            label = "{}: {:.0%}".format(class_names[classid], score)
             cv2.rectangle(frame_cap, (int(box[0]), int(box[1]),
                           int(box[2]), int(box[3])), color, 2)
             cv2.putText(frame_cap, label, (int(box[0]), int(box[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
