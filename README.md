@@ -23,8 +23,11 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Then install the following packages using pip:
+Then install the following packages using pip.
+
 Install torch first to use the correct CUDA package.
+
+Yo may have to refer to [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/) to get the correct torch version for your system.
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
