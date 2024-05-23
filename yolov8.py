@@ -5,11 +5,12 @@ import time
 import torch
 
 # Make sure to actually use the GPU for inference
+torch.cuda.set_device(0)  # use the GPU for inference
 print("Using torch version: ", torch.__version__)
 print("CUDA Support: ", torch.cuda.is_available())
-torch.cuda.set_device(0)  # use the GPU for inference
 
-model = YOLO("yolov8x-seg.pt")  # segmentation model, see https://docs.ultralytics.com/tasks/segment/#models
+# Model options: yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
+model = YOLO("yolov8s-seg.pt")  # segmentation model, see https://docs.ultralytics.com/tasks/segment/#models
 names = model.model.names  # use predefined class names
 
 # Read background image
@@ -18,10 +19,12 @@ bg = cv2.imread("yolov8_BG.png")
 # Create window in fullscreen mode
 cv2.namedWindow('ML_DEMO', cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty('ML_DEMO', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-(win_x, win_y, win_w, win_h) = cv2.getWindowImageRect('ML_DEMO')
+# (win_x, win_y, win_w, win_h) = cv2.getWindowImageRect('ML_DEMO')
+win_w = 1920  # Automatic window size detection does not work on the jetson nano
+win_h = 1080
 print("Window size: ", win_w, win_h)
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Get capture device
+cap = cv2.VideoCapture(0)  # Get capture device
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)  # try to set some insane resolution
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 # get actual maximum resolution
@@ -32,7 +35,7 @@ print("Capture size: ", capture_w, capture_h)
 # Calculate scaling for captured stream
 # scale the webcam stream to a factor of the window height
 # Factor determined by trial and error
-scaled_height = int(0.755 * win_h)
+scaled_height = int(0.754 * win_h)
 scaled_width = int((capture_w / capture_h) * scaled_height)
 print("Scaled size: ", scaled_width, scaled_height)
 
@@ -40,6 +43,12 @@ print("Scaled size: ", scaled_width, scaled_height)
 start_y = int((win_h - scaled_height) / 2)
 start_x = int((win_w - scaled_width) / 2)
 print("Start position: ", start_x, start_y)
+
+# Define the image size the inference engine shall use. Impacts performance!
+# HAS to be a multiple of 32!
+predict_w = 32 * 18
+predict_h = 32 * 10
+print("Inference image size: ", predict_w, predict_h)
 
 while True:
     (grabbed, frame_cap) = cap.read()
@@ -49,7 +58,7 @@ while True:
 
     # AI inference, measure time, see https://docs.ultralytics.com/tasks/segment/#inference
     start_inference = time.time()
-    results = model.predict(frame_cap)
+    results = model.predict(frame_cap, half=True, verbose=False, imgsz=(predict_w, predict_h))
     end_inference = time.time()
 
     # Draw stream, bg image and fps
